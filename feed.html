@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinkMind | Live Feed</title>
+    <title>LinkMind | The Global Network</title>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
     <script type="module">
-        // 1. Loading the Firebase 'Brain'
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, updateDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // 2. YOUR REAL KEYS
         const firebaseConfig = {
             apiKey: "AIzaSyBB6h1o-UQJ6lZBCmccteARly_mF79Rb5Q",
             authDomain: "linkmind-36c04.firebaseapp.com",
@@ -23,54 +22,117 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        // 3. Sharing to the Cloud
+        // --- AUTH LOGIC ---
+        window.handleAuth = async () => {
+            const email = prompt("Enter Email:");
+            const pass = prompt("Enter Password (min 6 chars):");
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch {
+                const name = prompt("New user! Enter your Full Name:");
+                const userCred = await createUserWithEmailAndPassword(auth, email, pass);
+                await updateProfile(userCred.user, { displayName: name });
+                location.reload();
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('authUI').style.display = 'none';
+                document.getElementById('appUI').style.display = 'block';
+                document.getElementById('userName').innerText = user.displayName;
+            }
+        });
+
+        // --- POSTING & COMMENTING ---
         window.shareThought = async () => {
             const text = document.getElementById('thoughtInput').value;
             if (!text.trim()) return;
-
             await addDoc(collection(db, "posts"), {
                 content: text,
+                author: auth.currentUser.displayName,
                 timestamp: serverTimestamp(),
-                author: "LinkMind Member"
+                likes: 0,
+                comments: []
             });
             document.getElementById('thoughtInput').value = "";
         };
 
-        // 4. Listening for anyone else's posts
+        window.addComment = async (postId) => {
+            const cText = prompt("Add a comment:");
+            if (!cText) return;
+            const postRef = doc(db, "posts", postId);
+            await updateDoc(postRef, {
+                comments: arrayUnion({ text: cText, user: auth.currentUser.displayName })
+            });
+        };
+
+        // --- LIVE FEED ---
         const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
         onSnapshot(q, (snapshot) => {
             const feed = document.getElementById('globalFeed');
             feed.innerHTML = ""; 
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                const div = document.createElement('div');
-                div.className = 'post-card';
-                div.innerHTML = `<strong>Explorer</strong><p>${data.content}</p>`;
-                feed.appendChild(div);
+            snapshot.forEach((postDoc) => {
+                const d = postDoc.data();
+                const card = document.createElement('div');
+                card.className = 'post-card';
+                card.innerHTML = `
+                    <div class="header"><strong>${d.author}</strong></div>
+                    <p>${d.content}</p>
+                    <div class="actions">
+                        <button onclick="addComment('${postDoc.id}')"><i class="ph ph-chat-circle"></i> ${d.comments?.length || 0}</button>
+                    </div>
+                    <div class="comment-section">${d.comments?.map(c => `<div class="comment"><b>${c.user}:</b> ${c.text}</div>`).join('')}</div>
+                `;
+                feed.appendChild(card);
             });
         });
     </script>
 
     <style>
-        body { background: #000; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
-        .container { width: 90%; max-width: 500px; margin-top: 30px; }
-        .input-box { background: #111; padding: 20px; border-radius: 20px; border: 1px solid #333; margin-bottom: 20px; }
+        :root { --accent: #00f2fe; --bg: #050505; --card: #111827; }
+        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; margin: 0; }
+        #authUI { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        #appUI { display: none; padding: 20px; max-width: 600px; margin: 0 auto; }
+        
+        .nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid #333; }
+        .input-box { background: var(--card); padding: 20px; border-radius: 20px; margin: 20px 0; border: 1px solid #374151; }
         textarea { width: 100%; background: transparent; border: none; color: white; font-size: 1.1rem; outline: none; resize: none; }
-        .post-card { background: #111; padding: 20px; border-radius: 20px; margin-bottom: 10px; border: 1px solid #222; animation: slideIn 0.3s ease; }
-        .btn { background: #00f2fe; border: none; padding: 10px 20px; border-radius: 50px; font-weight: bold; cursor: pointer; float: right; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+        
+        .post-card { background: var(--card); padding: 20px; border-radius: 24px; margin-bottom: 20px; border: 1px solid #1f2937; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .comment-section { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 10px; margin-top: 15px; font-size: 0.85rem; }
+        .comment { border-bottom: 1px solid #222; padding: 5px 0; }
+        
+        .btn { background: var(--accent); color: black; border: none; padding: 12px 24px; border-radius: 50px; font-weight: 700; cursor: pointer; }
+        .glass-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 50px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>LinkMind Global</h2>
-        <div class="input-box">
-            <textarea id="thoughtInput" placeholder="Send a message to everyone..."></textarea>
-            <button class="btn" onclick="shareThought()">Broadcast</button>
-            <div style="clear:both;"></div>
+
+    <div id="authUI">
+        <i class="ph ph-brain" style="font-size: 80px; color: var(--accent);"></i>
+        <h1>LinkMind</h1>
+        <p>A deeper connection awaits.</p>
+        <button class="btn" onclick="handleAuth()">Login or Create Account</button>
+    </div>
+
+    <div id="appUI">
+        <div class="nav">
+            <h2 style="color: var(--accent);">LinkMind</h2>
+            <div id="userName" style="font-weight: bold;"></div>
+            <button class="glass-btn"><i class="ph ph-gear"></i></button>
         </div>
+
+        <div class="input-box">
+            <textarea id="thoughtInput" placeholder="Share your mind..."></textarea>
+            <button class="btn" style="float: right;" onclick="shareThought()">Broadcast</button>
+            <div style="clear: both;"></div>
+        </div>
+
         <div id="globalFeed"></div>
     </div>
+
 </body>
 </html>
