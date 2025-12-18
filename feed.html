@@ -114,5 +114,49 @@
 
     </div>
 
-</body>
+</body> 
+    <script>
+    // 1. Tell the computer to find the button and the text box
+    const button = document.querySelector('.share-btn');
+    const textarea = document.querySelector('textarea');
+    const feedContainer = document.querySelector('.feed-container');
+
+    // 2. Tell the computer what to do when the button is clicked
+    button.addEventListener('click', () => {
+        const thoughtText = textarea.value;
+
+        // Only do something if the user actually typed a thought
+        if (thoughtText.trim() !== "") {
+            
+            // 3. Create a new "Post" card
+            const newPost = document.createElement('div');
+            newPost.className = 'mind-share';
+            
+            // 4. Fill the card with your info and your new thought
+            newPost.innerHTML = `
+                <div class="user-info">
+                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop" class="avatar">
+                    <div>
+                        <div style="font-weight: bold;">Me (LinkMind Creator)</div>
+                        <div style="font-size: 0.7rem; color: #00f2fe;">JUST NOW</div>
+                    </div>
+                </div>
+                <div class="content">${thoughtText}</div>
+                <div class="stats">
+                    <span><i class="ph ph-heart"></i> 0</span>
+                    <span><i class="ph ph-chat-circle"></i> 0 Comments</span>
+                </div>
+            `;
+
+            // 5. Put the new post at the top of the feed (right under the input box)
+            const inputArea = document.querySelector('.input-area');
+            inputArea.after(newPost);
+
+            // 6. Clear the text box so you can type something new
+            textarea.value = "";
+        } else {
+            alert("Please type a thought first!");
+        }
+    });
+</script>
 </html>
