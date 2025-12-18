@@ -54,6 +54,14 @@
             color: black; font-weight: bold; cursor: pointer; transition: 0.3s;
         }
         .share-btn:hover { transform: scale(1.05); box-shadow: 0 0 15px #00f2fe; }
+     /* Mobile Optimization */
+        @media (max-width: 600px) {
+            nav h2 { font-size: 1.2rem; }
+            .feed-container { width: 100%; padding: 0 10px; box-sizing: border-box; }
+            .mind-share { border-radius: 15px; padding: 15px; margin-bottom: 10px; }
+            h1 { font-size: 2.5rem; } /* for the home page later */
+            .avatar { width: 35px; height: 35px; }
+        }
     </style>
 </head>
 <body>
@@ -156,6 +164,18 @@
             textarea.value = "";
         } else {
             alert("Please type a thought first!");
+        }
+    });
+        // Make the heart icons clickable
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('ph-heart')) {
+            e.target.style.color = '#ff007a'; // Change to pink
+            e.target.classList.remove('ph');
+            e.target.classList.add('ph-fill'); // Fill the heart
+            
+            // Add a little pop animation
+            e.target.style.transform = 'scale(1.3)';
+            setTimeout(() => { e.target.style.transform = 'scale(1)'; }, 200);
         }
     });
 </script>
