@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkMind | Feed</title>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body {
+            margin: 0; background: #000; color: white;
+            font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center;
+        }
+        /* Top Navigation Bar */
+        nav {
+            width: 100%; padding: 20px; border-bottom: 1px solid #1e293b;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); position: sticky; top: 0;
+        }
+        .feed-container { max-width: 600px; width: 90%; margin-top: 30px; }
+        
+        /* The Intelligence Card (Post) */
+        .mind-share {
+            background: #0f172a; border: 1px solid #1e293b;
+            border-radius: 20px; padding: 20px; margin-bottom: 25px;
+            transition: 0.3s;
+        }
+        .mind-share:hover { border-color: #00f2fe; box-shadow: 0 0 20px rgba(0, 242, 254, 0.1); }
+        
+        .user-info { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(45deg, #00f2fe, #4facfe); }
+        
+        .content { color: #cbd5e1; line-height: 1.6; }
+        .stats { margin-top: 15px; display: flex; gap: 20px; color: #64748b; font-size: 0.9rem; }
+        
+        h2 { background: linear-gradient(to right, #00f2fe, #4facfe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; font-size: 1.5rem; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <h2>LinkMind</h2>
+        <i class="ph ph-user-circle" style="font-size: 32px; color: #00f2fe;"></i>
+    </nav>
+
+    <div class="feed-container">
+        <div class="mind-share">
+            <div class="user-info">
+                <div class="avatar"></div>
+                <strong>System_Alpha</strong>
+            </div>
+            <div class="content">
+                The future of social connection isn't about how many friends you have, but the quality of the ideas you share. Welcome to the LinkMind Beta.
+            </div>
+            <div class="stats">
+                <span><i class="ph ph-lightning"></i> 124 Insights</span>
+                <span><i class="ph ph-share-network"></i> Connect</span>
+            </div>
+        </div>
+
+        <div class="mind-share">
+            <div class="user-info">
+                <div class="avatar" style="background: #ff007a;"></div>
+                <strong>FutureThinker</strong>
+            </div>
+            <div class="content">
+                Just connected my first thought-node. The interface is much cleaner than the old social platforms. 
+            </div>
+            <div class="stats">
+                <span><i class="ph ph-lightning"></i> 89 Insights</span>
+                <span><i class="ph ph-share-network"></i> Connect</span>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
