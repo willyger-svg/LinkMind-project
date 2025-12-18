@@ -3,119 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinkMind | Global Feed</title>
+    <title>LinkMind | Live Feed</title>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script type="module">
+        // 1. Loading the Firebase 'Brain'
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // 2. YOUR REAL KEYS
+        const firebaseConfig = {
+            apiKey: "AIzaSyBB6h1o-UQJ6lZBCmccteARly_mF79Rb5Q",
+            authDomain: "linkmind-36c04.firebaseapp.com",
+            projectId: "linkmind-36c04",
+            storageBucket: "linkmind-36c04.firebasestorage.app",
+            messagingSenderId: "780449443808",
+            appId: "1:780449443808:web:1989f9a1d6810e2f3d4585"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 3. Sharing to the Cloud
+        window.shareThought = async () => {
+            const text = document.getElementById('thoughtInput').value;
+            if (!text.trim()) return;
+
+            await addDoc(collection(db, "posts"), {
+                content: text,
+                timestamp: serverTimestamp(),
+                author: "LinkMind Member"
+            });
+            document.getElementById('thoughtInput').value = "";
+        };
+
+        // 4. Listening for anyone else's posts
+        const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+        onSnapshot(q, (snapshot) => {
+            const feed = document.getElementById('globalFeed');
+            feed.innerHTML = ""; 
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                const div = document.createElement('div');
+                div.className = 'post-card';
+                div.innerHTML = `<strong>Explorer</strong><p>${data.content}</p>`;
+                feed.appendChild(div);
+            });
+        });
+    </script>
+
     <style>
-        :root { --neon: #00f2fe; --dark: #000000; --card: #0f172a; }
-        body { margin: 0; background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; }
-        
-        /* Live Status Bar */
-        .live-bar { width: 100%; background: #00f2fe; color: black; font-size: 0.8rem; font-weight: bold; text-align: center; padding: 5px 0; letter-spacing: 1px; }
-
-        nav { width: 100%; padding: 15px 25px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); position: sticky; top: 0; z-index: 100; box-sizing: border-box; }
-        
-        .feed-container { max-width: 600px; width: 95%; margin-top: 20px; }
-        
-        .mind-share { background: var(--card); border: 1px solid #1e293b; border-radius: 25px; padding: 20px; margin-bottom: 20px; transition: 0.3s; animation: fadeInUp 0.5s ease; }
-        
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon); }
-        
-        .input-area { background: rgba(255,255,255,0.03); border: 2px solid #1e293b; border-radius: 25px; padding: 20px; margin-bottom: 30px; }
+        body { background: #000; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 90%; max-width: 500px; margin-top: 30px; }
+        .input-box { background: #111; padding: 20px; border-radius: 20px; border: 1px solid #333; margin-bottom: 20px; }
         textarea { width: 100%; background: transparent; border: none; color: white; font-size: 1.1rem; outline: none; resize: none; }
-        
-        .action-btn { background: none; border: none; color: #94a3b8; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
-        .action-btn:hover { color: var(--neon); }
-        .share-btn { background: var(--neon); border: none; padding: 10px 25px; border-radius: 50px; font-weight: bold; cursor: pointer; }
-
-        #imagePreview { width: 100%; border-radius: 15px; margin-top: 10px; display: none; border: 1px solid #1e293b; }
+        .post-card { background: #111; padding: 20px; border-radius: 20px; margin-bottom: 10px; border: 1px solid #222; animation: slideIn 0.3s ease; }
+        .btn { background: #00f2fe; border: none; padding: 10px 20px; border-radius: 50px; font-weight: bold; cursor: pointer; float: right; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
     </style>
 </head>
 <body>
-
-    <div class="live-bar">● LIVE GLOBAL NETWORK ACTIVE</div>
-
-    <nav>
-        <h2>LinkMind</h2>
-        <div style="display: flex; gap: 15px; align-items: center;">
-            <span style="font-size: 0.8rem; color: #00f2fe;">@Creator_Mode</span>
-            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100" class="avatar" style="width: 35px; height: 35px;">
+    <div class="container">
+        <h2>LinkMind Global</h2>
+        <div class="input-box">
+            <textarea id="thoughtInput" placeholder="Send a message to everyone..."></textarea>
+            <button class="btn" onclick="shareThought()">Broadcast</button>
+            <div style="clear:both;"></div>
         </div>
-    </nav>
-
-    <div class="feed-container">
-        <div class="input-area">
-            <textarea id="thoughtInput" placeholder="Broadcast a thought to the network..."></textarea>
-            <img id="imagePreview">
-            <div style="display: flex; justify-content: space-between; margin-top: 15px; border-top: 1px solid #1e293b; padding-top: 10px;">
-                <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                <button onclick="document.getElementById('fileInput').click()" class="action-btn">
-                    <i class="ph ph-image-square" style="font-size: 1.5rem;"></i> Add Media
-                </button>
-                <button class="share-btn" onclick="shareThought()">Broadcast</button>
-            </div>
-        </div>
-
-        <div id="globalFeed">
-            </div>
+        <div id="globalFeed"></div>
     </div>
-
-    <script>
-        let selectedImage = "";
-
-        // Handle Image selection
-        document.getElementById('fileInput').onchange = function(e) {
-            const reader = new FileReader();
-            reader.onload = function() {
-                selectedImage = reader.result;
-                document.getElementById('imagePreview').src = selectedImage;
-                document.getElementById('imagePreview').style.display = 'block';
-            }
-            reader.readAsDataURL(e.target.files[0]);
-        };
-
-        function shareThought() {
-            const text = document.getElementById('thoughtInput').value;
-            if(!text && !selectedImage) return;
-
-            const post = document.createElement('div');
-            post.className = 'mind-share';
-            post.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                    <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100" class="avatar">
-                    <strong>LinkMind Founder</strong>
-                </div>
-                <div style="color: #cbd5e1;">${text}</div>
-                ${selectedImage ? `<img src="${selectedImage}" style="width:100%; border-radius:15px; margin-top:10px;">` : ''}
-                <div style="display: flex; gap: 20px; margin-top: 15px; padding-top: 10px; border-top: 1px solid #1e293b;">
-                    <button class="action-btn" onclick="likePost(this)"><i class="ph ph-heart"></i> <span class="count">0</span></button>
-                    <button class="action-btn" onclick="commentPost(this)"><i class="ph ph-chat-circle"></i> <span class="count">0</span></button>
-                </div>
-            `;
-            document.getElementById('globalFeed').prepend(post);
-            
-            // Clear input
-            document.getElementById('thoughtInput').value = "";
-            selectedImage = "";
-            document.getElementById('imagePreview').style.display = 'none';
-        }
-
-        function likePost(btn) {
-            let countSpan = btn.querySelector('.count');
-            let count = parseInt(countSpan.innerText);
-            countSpan.innerText = count + 1;
-            btn.style.color = "#00f2fe";
-            btn.querySelector('i').className = "ph-fill ph-heart";
-        }
-
-        function commentPost(btn) {
-            let countSpan = btn.querySelector('.count');
-            let count = parseInt(countSpan.innerText);
-            countSpan.innerText = count + 1;
-            let comment = prompt("Enter your thought on this:");
-            if(comment) alert("Comment registered on the network!");
-        }
-    </script>
 </body>
 </html>
